@@ -4,8 +4,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from sklearn.tree import export_graphviz
-from six import StringIO
-from IPython.display import Image
 import pydotplus
 import statistics
 
@@ -65,6 +63,9 @@ def random_forest_impl(X_train, y_train, X_test):
     clf = RandomForestClassifier()
     clf.fit(X_train, y_train)
     return clf.predict(X_test)
+
+def support_vector_machine_impl(X_train, y_train, X_test):
+    clf =
 
 
 def save_results_kfold(result_set, rs, result, accuracy):

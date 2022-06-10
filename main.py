@@ -1,14 +1,14 @@
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
-from sklearn.tree import export_graphviz
-import pydotplus
 import statistics
 
 kfold_results_dt = pd.DataFrame(columns=["random state", "accuracy", "one off", "two off", "fail"])
 kfold_results_rf = pd.DataFrame(columns=["random state", "accuracy", "one off", "two off", "fail"])
+kfold_results_nb = pd.DataFrame(columns=["random state", "accuracy", "one off", "two off", "fail"])
 
 # define column names
 col_names = ['fixed_acidity', 'volatile_acidity', 'citric_acid', 'residual_sugar', 'chlorides',
@@ -34,20 +34,28 @@ def runner(k):
         y_pred_dt = decision_tree_impl(X_train, y_train, X_test)
         accuracy_dt = metrics.accuracy_score(y_test, y_pred_dt)
         result_dt = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred_dt})
-        save_results_kfold(kfold_results_dt, rs, result_dt, accuracy_dt)
+        save_results(kfold_results_dt, rs, result_dt, accuracy_dt)
 
         # random forest
         y_pred_rf = random_forest_impl(X_train, y_train, X_test)
         accuracy_rf = metrics.accuracy_score(y_test, y_pred_rf)
         result_rf = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred_rf})
-        save_results_kfold(kfold_results_rf, rs, result_rf, accuracy_rf)
+        save_results(kfold_results_rf, rs, result_rf, accuracy_rf)
+
+        # naive bayes
+        y_pred_nb = random_forest_impl(X_train, y_train, X_test)
+        accuracy_nb = metrics.accuracy_score(y_test, y_pred_nb)
+        result_nb = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred_rf})
+        save_results(kfold_results_nb, rs, result_nb, accuracy_nb)
 
         rs = rs + 13 * 2
 
     kfold_results_dt.to_csv("./results/kfold-results-dt.csv", index=False)
     kfold_results_rf.to_csv("./results/kfold-results-rf.csv", index=False)
-    print("standard deviation for k-fold decision trees: " + str(statistics.stdev(kfold_results_dt.loc[:, "accuracy"])))
-    print("standard deviation for k-fold random forests: " + str(statistics.stdev(kfold_results_rf.loc[:, "accuracy"])))
+    kfold_results_nb.to_csv("./results/kfold-results-nb.csv", index=False)
+    print("standard deviation for decision trees: " + str(statistics.stdev(kfold_results_dt.loc[:, "accuracy"])))
+    print("standard deviation for random forests: " + str(statistics.stdev(kfold_results_rf.loc[:, "accuracy"])))
+    print("standard deviation for naive bayes: " + str(statistics.stdev(kfold_results_nb.loc[:, "accuracy"])))
 
 
 def decision_tree_impl(X_train, y_train, X_test):
@@ -64,11 +72,14 @@ def random_forest_impl(X_train, y_train, X_test):
     clf.fit(X_train, y_train)
     return clf.predict(X_test)
 
-def support_vector_machine_impl(X_train, y_train, X_test):
-    clf =
+
+def naive_bayes_impl(X_train, y_train, X_test):
+    clf = GaussianNB()
+    clf.fit(X_train, y_train)
+    return clf.predict(X_test)
 
 
-def save_results_kfold(result_set, rs, result, accuracy):
+def save_results(result_set, rs, result, accuracy):
     result_list = result.values.tolist()
     size = len(result_list)
 
@@ -91,16 +102,6 @@ def save_results_kfold(result_set, rs, result, accuracy):
         fail_per = fail_count * 100 / size
 
     result_set.loc[result_set.size] = [rs, accuracy, one_off_per, two_off_per, fail_per]
-
-
-def visualize_tree(clf):
-    dot_data = StringIO()
-    export_graphviz(clf, out_file=dot_data,
-                    filled=True, special_characters=True, feature_names=feature_cols,
-                    class_names=['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
-    graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
-    graph.write_png('wine_quality.png')
-    Image(graph.create_png())
 
 
 if __name__ == '__main__':

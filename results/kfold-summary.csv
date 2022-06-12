@@ -1,0 +1,4 @@
+method,avg accuracy,st deviation
+decision tree,0.62,0.62
+random forest,0.6928124999999999,0.021852667171308855
+naive bayes,0.6884375,0.02495873330230435

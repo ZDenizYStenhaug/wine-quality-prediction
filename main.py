@@ -34,28 +34,23 @@ def runner(k):
         y_pred_dt = decision_tree_impl(X_train, y_train, X_test)
         accuracy_dt = metrics.accuracy_score(y_test, y_pred_dt)
         result_dt = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred_dt})
-        save_results(kfold_results_dt, rs, result_dt, accuracy_dt)
+        append_results(kfold_results_dt, rs, result_dt, accuracy_dt)
 
         # random forest
         y_pred_rf = random_forest_impl(X_train, y_train, X_test)
         accuracy_rf = metrics.accuracy_score(y_test, y_pred_rf)
         result_rf = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred_rf})
-        save_results(kfold_results_rf, rs, result_rf, accuracy_rf)
+        append_results(kfold_results_rf, rs, result_rf, accuracy_rf)
 
         # naive bayes
         y_pred_nb = random_forest_impl(X_train, y_train, X_test)
         accuracy_nb = metrics.accuracy_score(y_test, y_pred_nb)
         result_nb = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred_rf})
-        save_results(kfold_results_nb, rs, result_nb, accuracy_nb)
+        append_results(kfold_results_nb, rs, result_nb, accuracy_nb)
 
         rs = rs + 13 * 2
 
-    kfold_results_dt.to_csv("./results/kfold-results-dt.csv", index=False)
-    kfold_results_rf.to_csv("./results/kfold-results-rf.csv", index=False)
-    kfold_results_nb.to_csv("./results/kfold-results-nb.csv", index=False)
-    print("standard deviation for decision trees: " + str(statistics.stdev(kfold_results_dt.loc[:, "accuracy"])))
-    print("standard deviation for random forests: " + str(statistics.stdev(kfold_results_rf.loc[:, "accuracy"])))
-    print("standard deviation for naive bayes: " + str(statistics.stdev(kfold_results_nb.loc[:, "accuracy"])))
+    save_results()
 
 
 def decision_tree_impl(X_train, y_train, X_test):
@@ -79,7 +74,7 @@ def naive_bayes_impl(X_train, y_train, X_test):
     return clf.predict(X_test)
 
 
-def save_results(result_set, rs, result, accuracy):
+def append_results(result_set, rs, result, accuracy):
     result_list = result.values.tolist()
     size = len(result_list)
 
@@ -102,6 +97,27 @@ def save_results(result_set, rs, result, accuracy):
         fail_per = fail_count * 100 / size
 
     result_set.loc[result_set.size] = [rs, accuracy, one_off_per, two_off_per, fail_per]
+
+
+def save_results():
+    kfold_results_dt.to_csv("./results/kfold-results-dt.csv", index=False)
+    kfold_results_rf.to_csv("./results/kfold-results-rf.csv", index=False)
+    kfold_results_nb.to_csv("./results/kfold-results-nb.csv", index=False)
+
+    dt_deviation = statistics.stdev(kfold_results_dt.loc[:, "accuracy"])
+    rf_deviation = statistics.stdev(kfold_results_rf.loc[:, "accuracy"])
+    nb_deviation = statistics.stdev(kfold_results_nb.loc[:, "accuracy"])
+
+    dt_avg_accuracy = statistics.mean(kfold_results_dt.loc[:, "accuracy"])
+    rf_avg_accuracy = statistics.mean(kfold_results_rf.loc[:, "accuracy"])
+    nb_avg_accuracy = statistics.mean(kfold_results_nb.loc[:, "accuracy"])
+
+    cols = ["method", "avg accuracy", "st deviation"]
+    summary = [["decision tree", dt_avg_accuracy, dt_deviation],
+               ["random forest", rf_avg_accuracy, rf_deviation],
+               ["naive bayes", nb_avg_accuracy, nb_deviation]]
+    df = pd.DataFrame(summary, columns=cols)
+    df.to_csv("./results/kfold-summary.csv", index=False)
 
 
 if __name__ == '__main__':

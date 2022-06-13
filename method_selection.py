@@ -43,9 +43,9 @@ def runner(k):
         append_results(kfold_results_rf, rs, result_rf, accuracy_rf)
 
         # naive bayes
-        y_pred_nb = random_forest_impl(X_train, y_train, X_test)
+        y_pred_nb = naive_bayes_impl(X_train, y_train, X_test)
         accuracy_nb = metrics.accuracy_score(y_test, y_pred_nb)
-        result_nb = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred_rf})
+        result_nb = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred_nb})
         append_results(kfold_results_nb, rs, result_nb, accuracy_nb)
 
         rs = rs + 13 * 2
@@ -55,7 +55,7 @@ def runner(k):
 
 def decision_tree_impl(X_train, y_train, X_test):
     # Create Decision Tree classifier object
-    clf = DecisionTreeClassifier(splitter="random", random_state=0)
+    clf = DecisionTreeClassifier(random_state=0)
     # Train Decision Tree Classifer
     clf = clf.fit(X_train, y_train)
     # Predict the response for test dataset
@@ -63,7 +63,7 @@ def decision_tree_impl(X_train, y_train, X_test):
 
 
 def random_forest_impl(X_train, y_train, X_test):
-    clf = RandomForestClassifier()
+    clf = RandomForestClassifier(random_state=0)
     clf.fit(X_train, y_train)
     return clf.predict(X_test)
 
